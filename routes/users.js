@@ -1,9 +1,9 @@
 var express = require('express');
 var router = express.Router();
 var usersObj = require('./../models/Users');
-var GUID = require('./../models/GUID');
+var loginHistoryObj = require('./../models/LoginHistory');
 
-Users = usersObj.usersModel;
+var Users = usersObj.usersModel;
 /* GET a specific user. */
 router.get('/id/:id', function(req, res, next) {
     "use strict"
@@ -22,16 +22,24 @@ router.get('/id/:id', function(req, res, next) {
     });
 });
 
-/* Login as a specific user. */
-router.post('/login', function(req, res, next) {
+router.get('/login', function(req, res, next){
     "use strict"
-    Users.findOne({_id: req.params.id}, function (err, user) {
+    var session = req.query.access_token;
+    session = session.split('_');
+    session = session[0];
+    console.log(session);
+    loginHistoryObj.loginHistoryModel.findOne({session: session}, function (err, loginSession) {
         if (err) {
             return console.error(err);
         } else {
-            var guid = GUID.getGUID;
-            var now = new Date().getTime();
-            // TODO: Generate a session for this user and store it as login history.
+            var resJSON = "";
+            resJSON = JSON.stringify({
+                id: loginSession._id,
+                time: loginSession.time,
+                session: loginSession.session,
+                period: loginSession.period
+            })
+            res.json(resJSON);
         }
     });
 });
@@ -46,7 +54,9 @@ router.post('/', function(req, res, next) {
         if (err){
             return console.error(err);
         }
-        newId = parseInt(user[0]._id, 10) + 1;
+        newId = (
+            parseInt(user[0]._id, 10) === undefined
+            ? 0 : parseInt(user[0]._id, 10)) + 1;
         userObj._id = newId;
         userObj.name = req.body.name;
         userObj.birthday = req.body.birthday;
