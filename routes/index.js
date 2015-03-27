@@ -28,13 +28,13 @@ router.post('/login', function(req, res, next) {
                 var guid = (new GUID()).getGUID;
                 var now = new Date().getTime();
                 sessionToken = guid + "_" + now;
-                var currentSessionObj = {
+                var currentSessionObj = new LoginHistory({
                     _id: new ObjectID(),
                     time: now,
                     session: guid,
                     period: _Period
-                }
-                LoginHistory.create(currentSessionObj, function (err, post) {
+                });
+                currentSessionObj.save(function(err){
                     if (err){
                         console.log(err);
                         return next(err);
