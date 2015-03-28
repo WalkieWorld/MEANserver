@@ -21,6 +21,7 @@ ModelObj.prototype = {
     },
     LoginHistory:{
         _id: {type: require('mongoose').Schema.Types.ObjectId, auto: true},
+        user_id: Number,
         time: String,
         session: String,
         period: String

@@ -9,7 +9,7 @@ var LoginHistory = loginHistoryObj.loginHistoryModel;
 var ObjectID = require('mongodb').ObjectID;
 /* GET home page. */
 router.get('/', function(req, res, next) {
-    res.render('index', { title: 'Express', btnContent: 'Sign Up', action: 'user/' });
+    res.render('index', { title: 'Express', btnContent: 'Sign Up', action: 'users/' });
 });
 
 router.get('/login', function(req, res, next){
@@ -30,6 +30,7 @@ router.post('/login', function(req, res, next) {
                 sessionToken = guid + "_" + now;
                 var currentSessionObj = new LoginHistory({
                     _id: new ObjectID(),
+                    user_id: user._id,
                     time: now,
                     session: guid,
                     period: _Period

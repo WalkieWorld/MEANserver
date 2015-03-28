@@ -3,6 +3,8 @@ var router = express.Router();
 var usersObj = require('./../models/Users');
 var loginHistoryObj = require('./../models/LoginHistory');
 
+var helperObj = require('./../models/helper');
+
 var Users = usersObj.usersModel;
 /* GET a specific user. */
 router.get('/id/:id', function(req, res, next) {
@@ -24,24 +26,72 @@ router.get('/id/:id', function(req, res, next) {
 
 router.get('/login', function(req, res, next){
     "use strict"
-    var session = req.query.access_token;
-    session = session.split('_');
-    session = session[0];
-    console.log(session);
-    loginHistoryObj.loginHistoryModel.findOne({session: session}, function (err, loginSession) {
-        if (err) {
-            return console.error(err);
-        } else {
-            var resJSON = "";
-            resJSON = JSON.stringify({
-                id: loginSession._id,
-                time: loginSession.time,
-                session: loginSession.session,
-                period: loginSession.period
-            })
-            res.json(resJSON);
-        }
-    });
+    if(helperObj.isEmpty(req.body) && (req.query.access_token === undefined || req.query.access_token === null)){
+        res.redirect('/login');
+    }else if(!helperObj.isEmpty(req.body) && (req.query.access_token === undefined || req.query.access_token === null)){
+        Users.findOne({name: req.body.name, birthday: req.body.birthday}, function (err, user) {
+            if (err) {
+                return console.error(err);
+            } else {
+                if (user !== null) {
+                    loginHistoryObj.loginHistoryModel.findOne({user_id: users._id}).sort({time: -1}).exec(function(err, loginSession){
+                        if (err) {
+                            return console.error(err);
+                        } else {
+                            var resJSON = "";
+                            resJSON = JSON.stringify({
+                                user_id: user.user_id,
+                                name: user.name,
+                                birthday: user.birthday,
+                                expire_time: parseInt(loginSession.time, 10) + parseInt(loginSession.period, 10),
+                                session: loginSession.session,
+                                period: loginSession.period
+                            });
+                            res.json(resJSON);
+                        }
+                    });
+                }
+            }
+        });
+    }
+    else{
+        var session = req.query.access_token;
+        session = session.split('_');
+        session = session[0];
+        console.log(session);
+        loginHistoryObj.loginHistoryModel.findOne({session: session}, function (err, loginSession) {
+            if (err) {
+                return console.error(err);
+            } else {
+                if(loginSession !== null){
+                    Users.findOne({_id: loginSession.user_id}, function (err, user) {
+                        if (err) {
+                            return console.error(err);
+                        } else {
+                            res.render('users/login',
+                                {
+                                    user_id: user._id,
+                                    name: user.name,
+                                    birthday: user.birthday,
+                                    session: loginSession.session,
+                                    expire_time: new Date(parseInt(loginSession.time, 10) + parseInt(loginSession.period, 10))
+                                }
+                            );
+                        }
+                    });
+                }else{
+                    res.render('error', {
+                        message: "Cannot find the user!",
+                        error: {
+                            status: "200",
+                            stack: "null"
+                        }
+                    });
+                    return console.error("Cannot find the user!");
+                }
+            }
+        });
+    }
 });
 
 /* Create a new user */
@@ -49,25 +99,43 @@ router.post('/', function(req, res, next) {
     "use strict"
     var userObj = usersObj.User;
     var newId;
-    var myUser = Users.find({}).sort({_id: -1}).limit(1);
-    myUser.exec(function (err, user) {
-        if (err){
+    Users.findOne({name: req.body.name, birthday: req.body.birthday}).exec(function(err, user){
+        if(err){
             return console.error(err);
-        }
-        newId = (
-            parseInt(user[0]._id, 10) === undefined
-            ? 0 : parseInt(user[0]._id, 10)) + 1;
-        userObj._id = newId;
-        userObj.name = req.body.name;
-        userObj.birthday = req.body.birthday;
-        userObj.profession = 0;
-        Users.create(userObj, function (err, post) {
-            if (err){
-                return next(err);
+        }else{
+            if(user === null || user.length === 0){
+                var myUser = Users.find({}).sort({_id: -1}).limit(1);
+                myUser.exec(function (err, user) {
+                    if (err){
+                        return console.error(err);
+                    }
+                    newId = (
+                        user.length === 0
+                            ? 0 : parseInt(user[0]._id, 10)) + 1;
+                    userObj._id = newId;
+                    userObj.name = req.body.name;
+                    userObj.birthday = req.body.birthday;
+                    userObj.profession = 0;
+                    Users.create(userObj, function (err, post) {
+                        if (err){
+                            return next(err);
+                        }
+                    });
+                    res.redirect('http://' + req.get('host') + "/users/id/" + newId);
+                });
+            }else{
+                res.render('error', {
+                    message: "The user has been existing!",
+                    error: {
+                        status: "E11000",
+                        stack: "E11000 duplicate key error index: collection users"
+                    }
+                });
+                return console.error("The user has been existing!");
             }
-        });
-        res.redirect('http://' + req.get('host') + "/users/id/" + newId);
+        }
     });
+
 });
 
 /* Update an exisiting new user */
