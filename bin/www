@@ -3,10 +3,22 @@
 /**
  * Module dependencies.
  */
-
+var fs = require('fs');
 var app = require('../app');
 var debug = require('debug')('MEANserver:server');
 var http = require('http');
+var https = require('https');
+
+/**
+ * Read SSL certificate
+ * */
+var hskey = fs.readFileSync('./haoMEANserver-key.pem');
+var hscert = fs.readFileSync('./haoMEANserver-cert.pem');
+
+var options = {
+  key: hskey,
+  cert: hscert
+};
 
 /**
  * Get port from environment and store in Express.
@@ -19,7 +31,13 @@ app.set('port', port);
  * Create HTTP server.
  */
 
-var server = http.createServer(app);
+//var server = http.createServer(app);
+
+/**
+ * Create HTTPS server
+ */
+
+var server = https.createServer(options, app);
 
 /**
  * Listen on provided port, on all network interfaces.
