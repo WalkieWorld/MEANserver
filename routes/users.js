@@ -13,8 +13,7 @@ router.get('/id/:id', function(req, res, next) {
         if (err) {
             return console.error(err);
         } else {
-            var resJSON = "";
-            resJSON = JSON.stringify({
+            var resJSON = JSON.stringify({
                 id: user._id,
                 name: user.name,
                 birthday: user.birthday
@@ -28,70 +27,46 @@ router.get('/login', function(req, res, next){
     "use strict"
     if(helperObj.isEmpty(req.body) && (req.query.access_token === undefined || req.query.access_token === null)){
         res.redirect('/login');
-    }else if(!helperObj.isEmpty(req.body) && (req.query.access_token === undefined || req.query.access_token === null)){
-        Users.findOne({name: req.body.name, birthday: req.body.birthday}, function (err, user) {
-            if (err) {
-                return console.error(err);
-            } else {
-                if (user !== null) {
-                    loginHistoryObj.loginHistoryModel.findOne({user_id: users._id}).sort({time: -1}).exec(function(err, loginSession){
-                        if (err) {
-                            return console.error(err);
-                        } else {
-                            var resJSON = "";
-                            resJSON = JSON.stringify({
-                                user_id: user.user_id,
+    }else {
+        next();
+    }
+}, function(req, res){
+    var session = req.query.access_token;
+    session = session.split('_');
+    session = session[0];
+    console.log(session);
+    loginHistoryObj.loginHistoryModel.findOne({session: session}, function (err, loginSession) {
+        if (err) {
+            return console.error(err);
+        } else {
+            if(loginSession !== null){
+                Users.findOne({_id: loginSession.user_id}, function (err, user) {
+                    if (err) {
+                        return console.error(err);
+                    } else {
+                        res.render('users/login',
+                            {
+                                user_id: user._id,
                                 name: user.name,
                                 birthday: user.birthday,
-                                expire_time: parseInt(loginSession.time, 10) + parseInt(loginSession.period, 10),
                                 session: loginSession.session,
-                                period: loginSession.period
-                            });
-                            res.json(resJSON);
-                        }
-                    });
-                }
+                                expire_time: new Date(parseInt(loginSession.time, 10) + parseInt(loginSession.period, 10))
+                            }
+                        );
+                    }
+                });
+            }else{
+                res.render('error', {
+                    message: "Cannot find the user!",
+                    error: {
+                        status: "200",
+                        stack: "null"
+                    }
+                });
+                return console.error("Cannot find the user!");
             }
-        });
-    }
-    else{
-        var session = req.query.access_token;
-        session = session.split('_');
-        session = session[0];
-        console.log(session);
-        loginHistoryObj.loginHistoryModel.findOne({session: session}, function (err, loginSession) {
-            if (err) {
-                return console.error(err);
-            } else {
-                if(loginSession !== null){
-                    Users.findOne({_id: loginSession.user_id}, function (err, user) {
-                        if (err) {
-                            return console.error(err);
-                        } else {
-                            res.render('users/login',
-                                {
-                                    user_id: user._id,
-                                    name: user.name,
-                                    birthday: user.birthday,
-                                    session: loginSession.session,
-                                    expire_time: new Date(parseInt(loginSession.time, 10) + parseInt(loginSession.period, 10))
-                                }
-                            );
-                        }
-                    });
-                }else{
-                    res.render('error', {
-                        message: "Cannot find the user!",
-                        error: {
-                            status: "200",
-                            stack: "null"
-                        }
-                    });
-                    return console.error("Cannot find the user!");
-                }
-            }
-        });
-    }
+        }
+    });
 });
 
 /* Create a new user */
@@ -116,12 +91,13 @@ router.post('/', function(req, res, next) {
                     userObj.name = req.body.name;
                     userObj.birthday = req.body.birthday;
                     userObj.profession = 0;
-                    Users.create(userObj, function (err, post) {
+                    Users.create(userObj, function (err) {
                         if (err){
+                            console.log(err);
                             return next(err);
                         }
                     });
-                    res.redirect('http://' + req.get('host') + "/users/id/" + newId);
+                    res.redirect("/users/id/" + newId);
                 });
             }else{
                 res.render('error', {
