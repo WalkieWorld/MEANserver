@@ -16,10 +16,18 @@ GlobalObj.prototype = {
                 break;
             case '/users/login':
                 this.extend(this.usersLogin(), {
+                    // Hard code inside
+                    // It will set session after redirect to this page
+                    init: function () {
+                        var session = document.getElementById("session").textContent;
+                        var expireTime = document.getElementById("expireTime").textContent;
+                        this.setSessionLogin = {expire_time: expireTime, session: session}
+                        this.runVerifySession(expireTime, expireTime - (new Date()).getTime());
+                    },
                     loginCallback: function(data){
                         "use strict"
                         var sessionObj = this.getSessionLogin;
-                        if(sessionObj === null){
+                        if(sessionObj === null || sessionObj.expire_time < (new Date()).getTime()){
                             this.setSessionLogin = data;
                         }else{
                             this.runVerifySession(sessionObj.expire_time, sessionObj.period);
