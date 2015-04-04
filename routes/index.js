@@ -51,13 +51,13 @@ router.post('/login', function(req, res, next) {
         next();
     }
 }, function(req, res){
-    if(!helperObj.isEmpty(req.body) && (req.query.access_token === undefined || req.query.access_token === null)){
-        Users.findOne({name: req.body.name, birthday: req.body.birthday}, function (err, user) {
+    if(!helperObj.isEmpty(req.body)){
+        User.findOne({name: req.body.name, birthday: req.body.birthday}, function (err, user) {
             if (err) {
                 return console.error(err);
             } else {
                 if (user !== null) {
-                    loginHistoryObj.loginHistoryModel.findOne({user_id: users._id}).sort({time: -1}).exec(function(err, loginSession){
+                    loginHistoryObj.loginHistoryModel.findOne({user_id: user._id}).sort({time: -1}).exec(function(err, loginSession){
                         if (err) {
                             return console.error(err);
                         } else {
