@@ -61,15 +61,20 @@ router.post('/login', function(req, res, next) {
                         if (err) {
                             return console.error(err);
                         } else {
-                            var resJSON = JSON.stringify({
-                                user_id: user.user_id,
-                                name: user.name,
-                                birthday: user.birthday,
-                                expire_time: parseInt(loginSession.time, 10) + parseInt(loginSession.period, 10),
-                                session: loginSession.session,
-                                period: loginSession.period
-                            });
-                            res.json(resJSON);
+                            console.log("Time compared: " + (new Date().getTime() - parseInt(loginSession.time, 10) - parseInt(loginSession.period, 10)));
+                            if(parseInt(loginSession.time, 10) + parseInt(loginSession.period, 10) < new Date().getTime()){
+                                res.json();
+                            }else{
+                                var resJSON = JSON.stringify({
+                                    user_id: user.user_id,
+                                    name: user.name,
+                                    birthday: user.birthday,
+                                    expire_time: parseInt(loginSession.time, 10) + parseInt(loginSession.period, 10),
+                                    session: loginSession.session,
+                                    period: loginSession.period
+                                });
+                                res.json(resJSON);
+                            }
                         }
                     });
                 }

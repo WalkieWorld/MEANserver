@@ -20,7 +20,7 @@ GlobalObj.prototype = {
                         var session = document.getElementById("session").textContent;
                         var expireTime = document.getElementById("expireTime").textContent;
                         var loginBtn = document.getElementById("ajaxBtnLogin");
-                        loginBtn.addEventListener("click", this.loginEvent);
+                        loginBtn.addEventListener("click", this.loginEvent.bind(this));
                         this.setSessionLogin(JSON.stringify({expire_time: expireTime, session: session}));
                         var period = (new Date(expireTime)).getTime() - (new Date()).getTime();
                         expireTime = new Date(expireTime).getTime();
@@ -44,7 +44,7 @@ GlobalObj.prototype = {
                             name: document.getElementById("name").textContent,
                             birthday: document.getElementById("birthday").textContent
                         }));
-                    }.bind(this.UsersLogin.prototype),
+                    },
                     encodeFormData: function(data) {
                         if (!data) return "";
                         var pairs = [];
@@ -61,14 +61,19 @@ GlobalObj.prototype = {
                     loginCallback: function(req){
                         "use strict"
                         if(req.status === 200){
-                            var data = JSON.parse(req.responseText);
-                            var sessionObj = this.getSessionLogin();
-                            if(sessionObj === null || new Date(sessionObj.expire_time).getTime() <= (new Date()).getTime()){
-                                this.setSessionLogin(data);
-                                sessionObj = JSON.parse(data);
+                            if(req.responseText !== ""){
+                                var data = JSON.parse(req.responseText);
+                                var sessionObj = this.getSessionLogin();
+                                if(sessionObj === null || new Date(sessionObj.expire_time).getTime() <= (new Date()).getTime()){
+                                    this.setSessionLogin(data);
+                                    sessionObj = JSON.parse(data);
+                                }
+                                this.runVerifySession(sessionObj.expire_time, sessionObj.period);
+                                alert("Login again successfully!");
                             }
-                            this.runVerifySession(sessionObj.expire_time, sessionObj.period);
-                            alert("Login again successfully!");
+                            else{
+                                window.location = "https://localhost:3000/login";
+                            }
                         }
                     },
                     setSessionLogin: function(sessionObj){
