@@ -37,10 +37,10 @@ app.use('/', routes);
 app.use('/users', users);
 app.use('/login', users);
 
-app.use(function(req, res, next) {
+/*app.use(function(req, res, next) {
     res.locals._csrf = req.csrfToken();
     next();
-});
+});*/
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -73,5 +73,12 @@ app.use(function(err, req, res, next) {
   });
 });
 
+app.use(function (err, req, res, next) {
+    if (err.code !== 'EBADCSRFTOKEN') return next(err)
+
+    // handle CSRF token errors here
+    res.status(403)
+    res.send('form tampered with')
+})
 
 module.exports = app;

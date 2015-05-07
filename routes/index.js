@@ -8,6 +8,8 @@ var User = usersObj.usersModel;
 var LoginHistory = loginHistoryObj.loginHistoryModel;
 var ObjectID = require('mongodb').ObjectID;
 var helperObj = require('./../models/helper');
+var csrf = require('csurf');
+var csrfProtection = csrf({ cookie: true });
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -19,7 +21,7 @@ router.get('/login', function(req, res, next){
 });
 
 /* Login as a specific user. */
-router.post('/login', function(req, res, next) {
+router.post('/login', csrfProtection, function(req, res, next) {
     "use strict"
     if(!req.xhr){
         User.findOne({name: req.body.name, birthday: req.body.birthday}).exec(function(err, user){

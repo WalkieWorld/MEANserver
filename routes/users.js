@@ -4,6 +4,8 @@ var usersObj = require('./../models/Users');
 var loginHistoryObj = require('./../models/LoginHistory');
 
 var helperObj = require('./../models/helper');
+var csrf = require('csurf');
+var csrfProtection = csrf({ cookie: true });
 
 var Users = usersObj.usersModel;
 /* GET a specific user. */
@@ -23,7 +25,7 @@ router.get('/id/:id', function(req, res, next) {
     });
 });
 
-router.get('/login', function(req, res, next){
+router.get('/login', csrfProtection, function(req, res, next){
     "use strict"
     if(helperObj.isEmpty(req.body) && (req.query.access_token === undefined || req.query.access_token === null)){
         res.redirect('/login');
@@ -70,7 +72,7 @@ router.get('/login', function(req, res, next){
 });
 
 /* Create a new user */
-router.post('/', function(req, res, next) {
+router.post('/', csrfProtection, function(req, res, next) {
     "use strict"
     var userObj = usersObj.User;
     var newId;
