@@ -5,6 +5,7 @@ block content
         h1= title
         p Welcome to #{title}
         form#formSignUp.form-horizontal(action="#{action}", method="POST")
+            input(type='hidden', name='_csrf', value='#{csrfToken}')
             section.form-group
                 label(for='name', class="col-sm-2 control-label") Name
                 section.col-sm-10

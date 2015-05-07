@@ -4,6 +4,7 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var csrf = require('csurf');
 
 var routes = require('./routes/index');
 var users = require('./routes/users');
@@ -30,10 +31,16 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(csrf({ cookie: true }));
 
 app.use('/', routes);
 app.use('/users', users);
 app.use('/login', users);
+
+app.use(function(req, res, next) {
+    res.locals._csrf = req.csrfToken();
+    next();
+});
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

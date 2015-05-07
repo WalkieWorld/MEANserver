@@ -5,6 +5,7 @@ extends ../layout
 block content
    section.container
       form.form-horizontal
+         input(type='hidden', name='_csrf', value=_csrf)
          section.form-group
             label.col-sm-2.control-label ID
             section.col-sm-10

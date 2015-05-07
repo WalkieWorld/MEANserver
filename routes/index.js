@@ -8,13 +8,14 @@ var User = usersObj.usersModel;
 var LoginHistory = loginHistoryObj.loginHistoryModel;
 var ObjectID = require('mongodb').ObjectID;
 var helperObj = require('./../models/helper');
+
 /* GET home page. */
 router.get('/', function(req, res, next) {
-    res.render('index', { title: 'Express', btnContent: 'Sign Up', action: 'users/' });
+    res.render('index', { title: 'Express', btnContent: 'Sign Up', action: 'users/', csrfToken: req.csrfToken() });
 });
 
 router.get('/login', function(req, res, next){
-    res.render('index', { title: 'Express', btnContent: 'Log In', action: 'login' });
+    res.render('index', { title: 'Express', btnContent: 'Log In', action: 'login', csrfToken: req.csrfToken() });
 });
 
 /* Login as a specific user. */
