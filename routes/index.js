@@ -14,10 +14,12 @@ var csrfProtection = csrf({ cookie: true });
 /* GET home page. */
 router.get('/', function(req, res, next) {
     res.render('index', { title: 'Express', btnContent: 'Sign Up', action: 'users/', csrfToken: req.csrfToken() });
+    console.log("Cookies: ", req.cookies);
 });
 
 router.get('/login', function(req, res, next){
     res.render('index', { title: 'Express', btnContent: 'Log In', action: 'login', csrfToken: req.csrfToken() });
+    console.log("Cookies: ", req.cookies);
 });
 
 /* Login as a specific user. */

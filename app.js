@@ -30,17 +30,31 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(function (req, res, next) {
+    console.log(req.cookies.cokkieName);
+    // check if client sent cookie
+    var cookie = req.cookies.cokkieName;
+    if (cookie === undefined)
+    {
+        // no: set a new cookie
+        var randomNumber=Math.random().toString();
+        randomNumber=randomNumber.substring(2,randomNumber.length);
+        res.cookie('MEANserverSysCookie',randomNumber, { maxAge: 900000, httpOnly: true });
+        console.log('cookie have created successfully');
+    }
+    else
+    {
+        // yes, cookie was already present
+        console.log('cookie exists', cookie);
+    }
+    next();
+});
 app.use(csrf({ cookie: true }));
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', routes);
 app.use('/users', users);
 app.use('/login', users);
-
-/*app.use(function(req, res, next) {
-    res.locals._csrf = req.csrfToken();
-    next();
-});*/
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -48,8 +62,6 @@ app.use(function(req, res, next) {
   err.status = 404;
   next(err);
 });
-
-// error handlers
 
 // development error handler
 // will print stacktrace
@@ -72,7 +84,7 @@ app.use(function(err, req, res, next) {
     error: {}
   });
 });
-
+// CSRF attacks handlers
 app.use(function (err, req, res, next) {
     if (err.code !== 'EBADCSRFTOKEN') return next(err)
 
