@@ -17,7 +17,7 @@ mongoose.connect('mongodb://localhost/MEANdb', function(err) {
         console.log('connection successful');
     }
 });
-
+// This is for instance of express();
 var app = express();
 
 // view engine setup
